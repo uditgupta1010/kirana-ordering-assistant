@@ -1,0 +1,664 @@
+{
+  "currency": "INR",
+  "price_note": "unit_price is the distributor's price per piece in rupees",
+  "unit_map": {
+    "piece": {
+      "canonical": "piece",
+      "pieces": 1,
+      "words": [
+        "piece",
+        "pc",
+        "pcs",
+        "packet",
+        "pkt",
+        "pack",
+        "nag",
+        "pouch",
+        "bottle",
+        "jar",
+        "bar",
+        "sabun",
+        "kilo",
+        "kg",
+        "litre",
+        "liter",
+        "ltr"
+      ]
+    },
+    "case": {
+      "canonical": "case",
+      "pieces": "case_size",
+      "words": [
+        "peti",
+        "pethi",
+        "case",
+        "carton",
+        "cartoon",
+        "katta",
+        "pet"
+      ]
+    },
+    "box": {
+      "canonical": "box",
+      "pieces": "box_size",
+      "words": [
+        "dabba",
+        "dabbe",
+        "dibba",
+        "box",
+        "dabbi"
+      ]
+    },
+    "strip": {
+      "canonical": "strip",
+      "pieces": "strip_size",
+      "words": [
+        "ladi",
+        "ladiyan",
+        "strip",
+        "lari"
+      ]
+    }
+  },
+  "unit_notes": [
+    "'kilo', 'kg', 'litre' mean whole packs when the product's pack size is in that unit (e.g. '2 kilo Tata namak' = 2 pieces of Tata Salt 1kg). For other pack sizes ask a follow-up.",
+    "If a product has no box_size or strip_size, 'dabba' or 'ladi' for it is ambiguous: ask a follow-up."
+  ],
+  "products": [
+    {
+      "sku_id": "SKU001",
+      "brand": "Parle",
+      "name": "Parle-G Biscuit 50g",
+      "pack_size": "50 g",
+      "unit_price": 5,
+      "case_size": 144,
+      "category": "biscuits",
+      "aliases": [
+        "parle",
+        "parle-g",
+        "parle g",
+        "pg biscuit",
+        "parle 5 wala",
+        "glucose biscuit"
+      ],
+      "box_size": 24
+    },
+    {
+      "sku_id": "SKU002",
+      "brand": "Parle",
+      "name": "Parle-G Biscuit 100g",
+      "pack_size": "100 g",
+      "unit_price": 10,
+      "case_size": 96,
+      "category": "biscuits",
+      "aliases": [
+        "parle",
+        "parle-g",
+        "parle g",
+        "pg biscuit",
+        "parle 10 wala",
+        "glucose biscuit"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU003",
+      "brand": "Britannia",
+      "name": "Good Day Cashew 75g",
+      "pack_size": "75 g",
+      "unit_price": 10,
+      "case_size": 96,
+      "category": "biscuits",
+      "aliases": [
+        "good day",
+        "goodday",
+        "good day kaju",
+        "britannia good day"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU004",
+      "brand": "Britannia",
+      "name": "Marie Gold 120g",
+      "pack_size": "120 g",
+      "unit_price": 20,
+      "case_size": 60,
+      "category": "biscuits",
+      "aliases": [
+        "marie",
+        "marie gold",
+        "mari gold"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU005",
+      "brand": "Parle",
+      "name": "Hide & Seek 100g",
+      "pack_size": "100 g",
+      "unit_price": 30,
+      "case_size": 48,
+      "category": "biscuits",
+      "aliases": [
+        "hide and seek",
+        "hide & seek",
+        "hide n seek",
+        "chocolate biscuit"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU006",
+      "brand": "Nestle",
+      "name": "Maggi Masala Noodles 70g",
+      "pack_size": "70 g",
+      "unit_price": 14,
+      "case_size": 96,
+      "category": "noodles",
+      "aliases": [
+        "maggi",
+        "maggie",
+        "maggi noodles",
+        "masala maggi",
+        "2 minute"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU007",
+      "brand": "Tata",
+      "name": "Tata Salt 1kg",
+      "pack_size": "1 kg",
+      "unit_price": 28,
+      "case_size": 30,
+      "category": "staples",
+      "aliases": [
+        "tata salt",
+        "tata namak",
+        "namak",
+        "salt"
+      ]
+    },
+    {
+      "sku_id": "SKU008",
+      "brand": "Aashirvaad",
+      "name": "Aashirvaad Atta 5kg",
+      "pack_size": "5 kg",
+      "unit_price": 260,
+      "case_size": 4,
+      "category": "staples",
+      "aliases": [
+        "aashirvaad",
+        "ashirwad",
+        "ashirvad atta",
+        "atta"
+      ]
+    },
+    {
+      "sku_id": "SKU009",
+      "brand": "Fortune",
+      "name": "Fortune Soyabean Oil 1L",
+      "pack_size": "1 L",
+      "unit_price": 150,
+      "case_size": 12,
+      "category": "oil",
+      "aliases": [
+        "fortune",
+        "fortune oil",
+        "soyabean oil",
+        "fortune soya"
+      ]
+    },
+    {
+      "sku_id": "SKU010",
+      "brand": "Saffola",
+      "name": "Saffola Gold Oil 1L",
+      "pack_size": "1 L",
+      "unit_price": 190,
+      "case_size": 12,
+      "category": "oil",
+      "aliases": [
+        "saffola",
+        "saffola gold",
+        "safola"
+      ]
+    },
+    {
+      "sku_id": "SKU011",
+      "brand": "Dhara",
+      "name": "Dhara Mustard Oil 1L",
+      "pack_size": "1 L",
+      "unit_price": 175,
+      "case_size": 12,
+      "category": "oil",
+      "aliases": [
+        "dhara",
+        "sarso tel",
+        "sarson oil",
+        "mustard oil",
+        "kachi ghani"
+      ]
+    },
+    {
+      "sku_id": "SKU012",
+      "brand": "Tata",
+      "name": "Tata Tea Premium 250g",
+      "pack_size": "250 g",
+      "unit_price": 135,
+      "case_size": 40,
+      "category": "tea",
+      "aliases": [
+        "tata tea",
+        "tata chai",
+        "tata premium"
+      ]
+    },
+    {
+      "sku_id": "SKU013",
+      "brand": "Brooke Bond",
+      "name": "Red Label Tea 250g",
+      "pack_size": "250 g",
+      "unit_price": 140,
+      "case_size": 40,
+      "category": "tea",
+      "aliases": [
+        "red label",
+        "redlabel",
+        "laal chai",
+        "brooke bond"
+      ]
+    },
+    {
+      "sku_id": "SKU014",
+      "brand": "Bru",
+      "name": "Bru Instant Coffee 50g",
+      "pack_size": "50 g",
+      "unit_price": 115,
+      "case_size": 48,
+      "category": "coffee",
+      "aliases": [
+        "bru",
+        "bru coffee",
+        "coffee"
+      ]
+    },
+    {
+      "sku_id": "SKU015",
+      "brand": "Surf Excel",
+      "name": "Surf Excel Easy Wash 500g",
+      "pack_size": "500 g",
+      "unit_price": 70,
+      "case_size": 24,
+      "category": "detergent",
+      "aliases": [
+        "surf",
+        "surf excel",
+        "surf powder"
+      ]
+    },
+    {
+      "sku_id": "SKU016",
+      "brand": "Wheel",
+      "name": "Wheel Detergent Powder 1kg",
+      "pack_size": "1 kg",
+      "unit_price": 65,
+      "case_size": 20,
+      "category": "detergent",
+      "aliases": [
+        "wheel",
+        "wheel powder",
+        "green wheel"
+      ]
+    },
+    {
+      "sku_id": "SKU017",
+      "brand": "Rin",
+      "name": "Rin Detergent Bar 250g",
+      "pack_size": "250 g",
+      "unit_price": 22,
+      "case_size": 48,
+      "category": "detergent",
+      "aliases": [
+        "rin",
+        "rin bar",
+        "rin sabun",
+        "kapde ka sabun"
+      ]
+    },
+    {
+      "sku_id": "SKU018",
+      "brand": "Vim",
+      "name": "Vim Dishwash Bar 200g",
+      "pack_size": "200 g",
+      "unit_price": 20,
+      "case_size": 48,
+      "category": "cleaning",
+      "aliases": [
+        "vim",
+        "vim bar",
+        "bartan sabun"
+      ]
+    },
+    {
+      "sku_id": "SKU019",
+      "brand": "Harpic",
+      "name": "Harpic Toilet Cleaner 500ml",
+      "pack_size": "500 ml",
+      "unit_price": 99,
+      "case_size": 24,
+      "category": "cleaning",
+      "aliases": [
+        "harpic",
+        "toilet cleaner"
+      ]
+    },
+    {
+      "sku_id": "SKU020",
+      "brand": "Lizol",
+      "name": "Lizol Floor Cleaner 500ml",
+      "pack_size": "500 ml",
+      "unit_price": 115,
+      "case_size": 24,
+      "category": "cleaning",
+      "aliases": [
+        "lizol",
+        "floor cleaner",
+        "pocha liquid"
+      ]
+    },
+    {
+      "sku_id": "SKU021",
+      "brand": "Colgate",
+      "name": "Colgate Strong Teeth 100g",
+      "pack_size": "100 g",
+      "unit_price": 55,
+      "case_size": 72,
+      "category": "personal care",
+      "aliases": [
+        "colgate",
+        "colgate paste",
+        "toothpaste",
+        "manjan"
+      ],
+      "box_size": 12
+    },
+    {
+      "sku_id": "SKU022",
+      "brand": "Lux",
+      "name": "Lux Soap 100g",
+      "pack_size": "100 g",
+      "unit_price": 38,
+      "case_size": 72,
+      "category": "personal care",
+      "aliases": [
+        "lux",
+        "lux sabun",
+        "lux soap"
+      ]
+    },
+    {
+      "sku_id": "SKU023",
+      "brand": "Dettol",
+      "name": "Dettol Original Soap 75g",
+      "pack_size": "75 g",
+      "unit_price": 42,
+      "case_size": 72,
+      "category": "personal care",
+      "aliases": [
+        "dettol",
+        "dettol soap",
+        "dettol sabun"
+      ]
+    },
+    {
+      "sku_id": "SKU024",
+      "brand": "Clinic Plus",
+      "name": "Clinic Plus Shampoo Sachet 6ml",
+      "pack_size": "6 ml",
+      "unit_price": 2,
+      "case_size": 960,
+      "category": "personal care",
+      "aliases": [
+        "clinic plus",
+        "clinic shampoo",
+        "clinic sachet"
+      ],
+      "strip_size": 16
+    },
+    {
+      "sku_id": "SKU025",
+      "brand": "Sunsilk",
+      "name": "Sunsilk Shampoo Sachet 6ml",
+      "pack_size": "6 ml",
+      "unit_price": 3,
+      "case_size": 960,
+      "category": "personal care",
+      "aliases": [
+        "sunsilk",
+        "sunsilk sachet",
+        "sunsilk shampoo"
+      ],
+      "strip_size": 16
+    },
+    {
+      "sku_id": "SKU026",
+      "brand": "Haldiram's",
+      "name": "Haldiram's Aloo Bhujia 200g",
+      "pack_size": "200 g",
+      "unit_price": 55,
+      "case_size": 40,
+      "category": "snacks",
+      "aliases": [
+        "bhujia",
+        "aloo bhujia",
+        "haldiram",
+        "haldiram bhujia"
+      ]
+    },
+    {
+      "sku_id": "SKU027",
+      "brand": "Lay's",
+      "name": "Lay's Classic Salted 52g",
+      "pack_size": "52 g",
+      "unit_price": 20,
+      "case_size": 48,
+      "category": "snacks",
+      "aliases": [
+        "lays",
+        "lays chips",
+        "lays classic",
+        "chips"
+      ]
+    },
+    {
+      "sku_id": "SKU028",
+      "brand": "Kurkure",
+      "name": "Kurkure Masala Munch 90g",
+      "pack_size": "90 g",
+      "unit_price": 20,
+      "case_size": 48,
+      "category": "snacks",
+      "aliases": [
+        "kurkure",
+        "kurkure masala"
+      ]
+    },
+    {
+      "sku_id": "SKU029",
+      "brand": "Coca-Cola",
+      "name": "Thums Up 750ml",
+      "pack_size": "750 ml",
+      "unit_price": 40,
+      "case_size": 24,
+      "category": "beverages",
+      "aliases": [
+        "thums up",
+        "thumsup",
+        "thumbs up"
+      ]
+    },
+    {
+      "sku_id": "SKU030",
+      "brand": "Coca-Cola",
+      "name": "Coca-Cola 750ml",
+      "pack_size": "750 ml",
+      "unit_price": 40,
+      "case_size": 24,
+      "category": "beverages",
+      "aliases": [
+        "coke",
+        "coca cola",
+        "cola"
+      ]
+    },
+    {
+      "sku_id": "SKU031",
+      "brand": "Parle Agro",
+      "name": "Frooti Mango Drink 160ml",
+      "pack_size": "160 ml",
+      "unit_price": 10,
+      "case_size": 40,
+      "category": "beverages",
+      "aliases": [
+        "frooti",
+        "mango frooti",
+        "mango drink"
+      ]
+    },
+    {
+      "sku_id": "SKU032",
+      "brand": "Cadbury",
+      "name": "Bournvita 500g",
+      "pack_size": "500 g",
+      "unit_price": 250,
+      "case_size": 12,
+      "category": "health drinks",
+      "aliases": [
+        "bournvita",
+        "bornvita",
+        "bournvita jar"
+      ]
+    },
+    {
+      "sku_id": "SKU033",
+      "brand": "Kissan",
+      "name": "Kissan Tomato Ketchup 500g",
+      "pack_size": "500 g",
+      "unit_price": 120,
+      "case_size": 24,
+      "category": "sauces",
+      "aliases": [
+        "kissan",
+        "kissan ketchup",
+        "ketchup",
+        "sauce"
+      ]
+    },
+    {
+      "sku_id": "SKU034",
+      "brand": "MDH",
+      "name": "MDH Deggi Mirch 100g",
+      "pack_size": "100 g",
+      "unit_price": 80,
+      "case_size": 60,
+      "category": "spices",
+      "aliases": [
+        "mdh",
+        "deggi mirch",
+        "degi mirch",
+        "mdh mirch"
+      ],
+      "box_size": 10
+    },
+    {
+      "sku_id": "SKU035",
+      "brand": "Everest",
+      "name": "Everest Garam Masala 100g",
+      "pack_size": "100 g",
+      "unit_price": 85,
+      "case_size": 60,
+      "category": "spices",
+      "aliases": [
+        "everest",
+        "garam masala",
+        "everest masala"
+      ],
+      "box_size": 10
+    },
+    {
+      "sku_id": "SKU036",
+      "brand": "Catch",
+      "name": "Catch Turmeric Powder 100g",
+      "pack_size": "100 g",
+      "unit_price": 35,
+      "case_size": 60,
+      "category": "spices",
+      "aliases": [
+        "haldi",
+        "catch haldi",
+        "turmeric"
+      ],
+      "box_size": 10
+    },
+    {
+      "sku_id": "SKU037",
+      "brand": "Good Knight",
+      "name": "Good Knight Gold Flash Refill",
+      "pack_size": "45 ml",
+      "unit_price": 85,
+      "case_size": 48,
+      "category": "home care",
+      "aliases": [
+        "good knight",
+        "goodnight",
+        "machhar refill",
+        "mosquito refill"
+      ]
+    },
+    {
+      "sku_id": "SKU038",
+      "brand": "Amul",
+      "name": "Amul Butter 100g",
+      "pack_size": "100 g",
+      "unit_price": 58,
+      "case_size": 48,
+      "category": "dairy",
+      "aliases": [
+        "amul butter",
+        "makhan",
+        "butter"
+      ]
+    },
+    {
+      "sku_id": "SKU039",
+      "brand": "Dairy Milk",
+      "name": "Cadbury Dairy Milk 13g",
+      "pack_size": "13 g",
+      "unit_price": 10,
+      "case_size": 384,
+      "category": "confectionery",
+      "aliases": [
+        "dairy milk",
+        "cadbury",
+        "chocolate"
+      ],
+      "box_size": 24
+    },
+    {
+      "sku_id": "SKU040",
+      "brand": "Pulse",
+      "name": "Pulse Candy Kachcha Aam",
+      "pack_size": "4 g",
+      "unit_price": 1,
+      "case_size": 1200,
+      "category": "confectionery",
+      "aliases": [
+        "pulse",
+        "pulse candy",
+        "pulse toffee"
+      ],
+      "strip_size": 50
+    }
+  ]
+}

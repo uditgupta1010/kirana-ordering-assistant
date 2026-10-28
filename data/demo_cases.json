@@ -1,0 +1,33 @@
+{
+  "note": "The 4 cases the course demo must show. The nudge case uses store ST238, whose order history makes Fortune oil a very likely item next week (model probability about 0.92), so leaving oil out should trigger a nudge.",
+  "cases": [
+    {
+      "id": "clean",
+      "label": "1. Clean order",
+      "store_id": "ST012",
+      "message": "Namaste bhaiya, 2 peti Parle-G 100g, 1 peti Maggi aur 5 packet Tata Salt 1kg bhej do",
+      "expect": "All 3 items matched; no follow-up; confirmation table with rupee totals."
+    },
+    {
+      "id": "ambiguous",
+      "label": "2. Unclear order (follow-up)",
+      "store_id": "ST045",
+      "message": "bhaiya 3 dabba parle aur 2 peti oil bhejna",
+      "expect": "Two follow-ups: Parle-G 50g or 100g? and which oil (Fortune / Saffola / Dhara)?"
+    },
+    {
+      "id": "nudge",
+      "label": "3. Reorder nudge",
+      "store_id": "ST238",
+      "message": "2 peti hide and seek aur 1 dabba MDH mirch bhej do",
+      "expect": "Both items matched; nudge: 'Aapne is baar Fortune oil order nahi kiya, bhej dein?' with Yes/No."
+    },
+    {
+      "id": "edge",
+      "label": "4. Item not in catalog",
+      "store_id": "ST101",
+      "message": "1 peti good day aur 2 box Ferrero Rocher bhej do",
+      "expect": "Good Day matched; Ferrero Rocher shown as 'Not in catalog', never replaced with another product."
+    }
+  ]
+}

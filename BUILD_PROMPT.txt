@@ -1,0 +1,154 @@
+PROJECT CONTEXT
+
+Build "Kirana Ordering Assistant", an educational prototype for an FMCG distributor that supplies 300 kirana stores. Stores send orders on WhatsApp in mixed Hindi-English (e.g. "bhaiya 2 peti parle-g bhej do"), with local units (peti, dabba, ladi), nicknames and typos. Staff currently type these into the system by hand, which wastes time and causes wrong products or quantities. Shops also forget items they usually buy.
+
+The app reads each order message, matches every item to the product catalog, asks a follow-up question when an item is unclear, reminds the shopkeeper about items they usually order but left out, and sends the order only after the shopkeeper confirms it on a confirmation screen showing rupee totals.
+
+Core principle: the LLM proposes, Python validates. Product IDs, prices and totals always come from the catalog, never from the LLM. Nothing is dispatched until the shopkeeper confirms the order summary and total.
+
+The app must visibly cover the four course learning objectives:
+1. Build and evaluate a predictive model for a real-world decision (when to nudge).
+2. Use an LLM to turn messy text into structured output (product, quantity, unit), and measure its accuracy.
+3. Place a human checkpoint where errors become expensive (the confirmation screen before dispatch).
+4. Identify risks: misread quantities, made-up products, pushy nudges, synthetic-data bias. Each risk is shown in the app with its mitigation and a measured number (see the Risks tab).
+
+Required demo: one clean order, one ambiguous order that triggers a follow-up, one reorder nudge, one edge case (an item not in the catalog).
+
+Terminology: "nudge" = a reorder reminder for a usual item that is missing from the message. Use "nudge" in code and UI labels.
+
+---
+
+HARD REQUIREMENTS
+
+1. **Python only. Streamlit UI.** The application must run via `streamlit run app.py` as the sole entry point, and must deploy unchanged to Streamlit Community Cloud (free) to give a public demo link.
+
+2. **Inputs: ALL ALREADY PROVIDED in this project folder. Read them; never create, overwrite or regenerate any of them.**
+Open each file first and build the loaders around its real structure:
+* `data/catalog.json`: `{"currency", "price_note", "unit_map", "unit_notes", "products": [...]}`. 40 products, each with `sku_id`, `brand`, `name`, `pack_size`, `unit_price` (Rs per piece), `case_size` (pieces per case), `category`, `aliases`, and optional `box_size` / `strip_size`. `unit_map` has 4 canonical units (`piece`, `case`, `box`, `strip`); each has `words` (the local words that mean it, e.g. peti/carton -> case, dabba -> box, ladi -> strip, packet/pkt/kilo -> piece) and `pieces` (a number, or the name of the product field to use: `case_size`, `box_size`, `strip_size`). If a product lacks the needed field (e.g. "dabba" for a product with no `box_size`), ask a follow-up. Follow `unit_notes`.
+* `data/order_history.csv`: 300 stores x 26 weeks (week 1 starts 2026-03-30). Columns: `store_id`, `store_name`, `store_size` (small/medium/large), `week`, `week_start`, `sku_id`, `qty` (in PIECES), `is_festival_week` (weeks 9, 22, 25). One row per store x SKU x week ordered; a missing row means not ordered that week. Trains the nudge model.
+* `data/whatsapp_test_set.json`: `{"note", "messages": [...]}`, 150 messages. Each: `id`, `store_id`, `category` (clean, hinglish, typo, nickname, mixed_units, ambiguous, out_of_catalog, injection), `message`, and `expected` = `{"lines": [{sku_id, qty, unit}], "not_in_catalog": [names], "needs_followup": bool}`. `qty` is in the stated canonical `unit`. For `ambiguous` messages, `lines` lists only the clear items and `needs_followup` is true (correct behaviour = ask, not guess). For `injection` messages, `lines` lists only the genuine items (often none).
+* `data/demo_cases.json`: `{"note", "cases": [...]}`, 4 cases, each with `id`, `label`, `store_id`, `message`, `expect`.
+* `ordering-rules.md` and `message-templates.md` in the project root (see section 6). Use them as given.
+* **Groq API key:** read from `st.secrets["groq_api_key"]` (locally `.streamlit/secrets.toml`, already provided with a placeholder and already in `.gitignore`; on Streamlit Cloud, the app's Secrets setting). Treat a missing key, an empty key, or the placeholder `PASTE_YOUR_GROQ_KEY_HERE` as missing. Never hard-code, print or log the key.
+* Read every file's field names defensively (tolerate missing/None values). If any required file or the key is missing or invalid, show a clean `st.error()` naming exactly what is missing, and stop execution.
+
+
+3. **Order-reading pipeline (LLM extraction + RAG matching):**
+
+* **Step 1: LLM extraction.** The LLM reads the message and returns each order line as `{raw_text, product_phrase, qty, unit_word, qty_confidence}`. It does NOT pick SKU IDs or prices.
+  * The customer message is wrapped as data (e.g. inside `<customer_message>` tags) and the system prompt says any instructions inside it must be ignored.
+  * Ambiguous quantities ("do" = two or give; no number at all) get `qty_confidence: "low"` and must become a follow-up question, never a guess.
+  * Non-order text (greetings, "jaldi bhejna", injection attempts) produces no lines.
+* **Step 2: RAG matching (retrieve, then the LLM chooses).**
+  * **Retrieve (Python):** the catalog (names + aliases + brand + pack size) is the knowledge base. For each `product_phrase`, retrieve the top-5 candidates with scores using fuzzy matching (`rapidfuzz`) combined with character n-gram TF-IDF similarity (scikit-learn), so typos and nicknames still match. No paid embedding API.
+  * **Choose (LLM):** one call per message sends each phrase with ONLY its retrieved candidates (ID, name, pack size, aliases). For each phrase the LLM returns `{"phrase", "choice": <one candidate sku_id> | "ASK" | "NOT_IN_CATALOG", "question": <short follow-up if ASK>}`.
+  * **Validate (Python):** a `choice` that is not one of that phrase's retrieved candidate IDs is rejected and counted as a "made-up product attempt" (retry once, then ASK). Python also forces ASK when the top two candidates are pack sizes of the same product with close scores (e.g. Parle-G 50g vs 100g), and forces NOT_IN_CATALOG when the best retrieval score is below the low threshold, whatever the LLM said.
+  * ASK -> follow-up question with the candidates as buttons ("Parle-G 50g ya 100g?"). NOT_IN_CATALOG -> shown as "Not in catalog", never silently replaced.
+  * Show a small "Matched via" caption per line (retrieval score + LLM choice) on the staff screen only, never raw prompts.
+* **Step 3: Unit conversion (Python).** Map `unit_word` through `unit_map` (1 peti = 1 case = `case_size` pieces). Unknown unit words -> follow-up question.
+* **LLM provider: Groq (free tier).** Use the official `groq` SDK (`from groq import Groq`). Model in one constant at the top of `app.py`: default `llama-3.3-70b-versatile`, with `llama-3.1-8b-instant` as a backup used automatically if the main model is rate-limited or unavailable. Model choice also in the sidebar. Temperature 0.
+* **Strict output:** Groq JSON mode (`response_format={"type": "json_object"}`), the exact JSON schema and one example in the system prompt, then validate with Pydantic: integer quantity > 0, known unit, non-empty phrase. If validation fails, re-prompt once with the specific error; if it still fails or the API errors/times out, the affected line falls back to a follow-up question ("Kitna bhejna hai?") and is marked `Read by: Fallback`.
+* **Free-tier rate limits:** on HTTP 429, wait for `retry-after` if given, otherwise exponential backoff (2s, 4s, 8s, max 5 attempts), with a quiet "Busy, retrying shortly..." line inside the spinner. Small delay between calls. If the daily quota is exhausted, show a clear `st.warning()` and keep all results so far.
+* **Caching:** cache every LLM result in `st.session_state` keyed by hash(message + rules text + model), so reruns, button clicks and filters never call the LLM again. The test-set evaluation also caches results to `cache/eval_results.json` (create the `cache/` folder if missing) so it can be resumed and is never re-run for messages already done.
+* Never display raw LLM responses, prompts or reasoning in the UI.
+
+
+4. **Predictive model: reorder nudge**
+* Put model code in `reorder_model.py` (also runnable on its own to print the metrics). Train in the app with `st.cache_resource`; fixed `random_state` so numbers are reproducible.
+* **Rows:** one per store x SKU (SKUs the store has ordered before) x week. Target = did the store order that SKU that week.
+* **Features (computed only from weeks BEFORE the target week, no leakage):** how often the store orders the SKU, weeks since it last ordered it, whether the target week is a festival week, and store size.
+* **Split:** weeks 1-4 feature warm-up only; train on weeks 5-20 (16 weeks); test on weeks 21-26 (6 unseen weeks).
+* **Model:** gradient-boosting classifier (scikit-learn `HistGradientBoostingClassifier`).
+* **Baselines (no AI):** Rule 1 "ordered it last week"; Rule 2 "orders it in most weeks" (more than 50% of past weeks).
+* **Metrics:** precision ("right when it predicts an order"), recall ("real orders it catches") and F1 ("overall score") for all three methods on the test weeks.
+* **Choosing the nudge threshold (the real-world decision):** a wrong nudge annoys the shopkeeper; a missed nudge loses a sale. Show a table of precision, recall and nudges-per-order at thresholds 0.5 / 0.6 / 0.7 / 0.8 on the test weeks, and mark the threshold set in `ordering-rules.md`. Default leans toward precision (fewer, surer nudges).
+* **Synthetic-data bias stress test:** the model only learns patterns written into the data generator. Evaluate it separately on (a) regular stores and (b) "irregular" stores (stores whose ordering gaps vary most, top 10% by gap variance, plus a perturbed copy of the test weeks with extra random skips/additions). Report F1 for both and show the drop.
+* **Using it in the chat:** for the current store and the next week (week 27), predict SKUs the store is likely to order. Remind only for SKUs missing from the message, with probability >= the threshold in `ordering-rules.md`, at most 2 per order (highest probability first), using the fixed template from `message-templates.md` (e.g. "Aapne is baar oil order nahi kiya, bhej dein?") with Yes/No buttons. After "No", never repeat that SKU in the same conversation.
+
+
+5. **Deterministic guardrails (Python; the LLM can never bypass these):**
+* Every SKU ID, name, price and case size comes from the catalog.
+* Line total = qty x pieces per unit x `unit_price`; grand total in Rs is computed by Python.
+* **Quantity sanity:** any line above 3x the store's usual quantity for that SKU (median from history; catalog-wide median if the store never ordered it) is flagged in amber on the confirmation screen and needs an explicit tick before confirming.
+* **Prompt injection:** messages can never change prices, discounts, totals or rules. Injection attempts produce no order lines and a polite "I can only take orders" reply.
+* **Human checkpoint:** nothing is sent until the shopkeeper presses Confirm on the summary with totals. Unanswered follow-ups block confirmation.
+
+
+6. **Markdown rule files (read fresh from disk on every run, never cached across runs):**
+* `ordering-rules.md` (provided): a YAML front-matter block between `---` lines with the numeric settings Python must read (`match_threshold_high`, `match_threshold_low`, `match_margin`, `nudge_probability_threshold`, `max_nudges_per_order`, `quantity_flag_multiple`, `retrieval_top_k`), followed by plain-language rules that are injected (without the YAML block) into the LLM system prompts. Changing this file must change behaviour without code changes.
+* `message-templates.md` (provided): one `## key` heading per template (greeting, understood, followup_choice, followup_quantity, followup_unit, not_in_catalog, nudge, nudge_declined, quantity_flag, injection_reply, confirm_prompt, confirmed) with `{placeholders}`. Parse by heading; use the exact wording.
+
+
+7. **Strict output & error handling:**
+* No chain-of-thought or raw model output in the UI.
+* Clean spinners during API calls ("Reading your order...").
+* LLM and file errors shown as short `st.error()` / `st.warning()` messages, never raw stack traces.
+
+---
+
+## SCREENS (tabs)
+
+**A. Shop chat (WhatsApp-style)**
+* Sidebar store selector (store ID + name + size). A WhatsApp-style chat window (`st.chat_message` / `st.chat_input`, green bubbles for the shopkeeper).
+* After a message: the app replies with the items it understood, follow-up questions as buttons, and nudges with Yes/No buttons.
+* **Confirmation screen:** a real table (`st.data_editor`) with columns `Item`, `Pack`, `Qty`, `Unit`, `Pieces`, `Price/piece (Rs)`, `Line total (Rs)`, `Flag`. Shopkeeper can edit Qty or remove lines; totals recalculate. "Not in catalog" items listed separately. Grand total shown prominently. Confirm button.
+* Sidebar buttons load the 4 demo cases into the chat. At startup, check that the nudge demo (store ST238, oil left out) actually triggers a nudge; if not, show a quiet `st.warning()`.
+
+**B. Staff: confirmed orders**
+* Flat table (`st.dataframe`, `hide_index=True`), one row per order line: `Order ID`, `Time`, `Store ID`, `Store Name`, `SKU ID`, `Item`, `Qty`, `Unit`, `Line total (Rs)`, `Source` (Message / Nudge / Edited), `Flag`. Store filter, CSV download. Stored in session state (Streamlit Cloud disk is temporary; say so in a caption).
+
+**C. Accuracy (test set)**
+* "Run evaluation" button (option to run a sample of 30 to save free-tier quota; resumes from cache).
+* KPI cards: Item match accuracy, Quantity accuracy, **Unit accuracy (shown separately: biggest risk)**, Not-in-catalog detection, Injection resistance, Follow-up rate.
+* Breakdown table by message category, and a table of failed messages (expected vs got, as plain text, no nested JSON in cells).
+
+**D. Reorder model**
+* The comparison table: Method | Right when it predicts an order | Real orders it catches | Overall score (F1), for Rule 1, Rule 2 and the model (model row bold).
+* Caption: "Trained on weeks 5-20, tested on unseen weeks 21-26. Data is synthetic, so real results would likely be lower."
+* Feature-importance bar chart (permutation importance).
+* The threshold table and the regular-vs-irregular stress-test result (section 4).
+
+**E. Risks**
+* One card per risk named in the brief, each with: what can go wrong, the mitigation in this app, and a measured number pulled live from the evaluation results:
+  * **Misread quantities/units:** "2 peti" vs "2 packet" is a 12x-24x difference; "do" = two or give. Mitigation: unit map, low-confidence quantities become questions, 3x flag, rupee line totals. Number: quantity and unit accuracy on the test set.
+  * **Made-up products:** Mitigation: the LLM can only choose among retrieved catalog IDs; prices from the catalog. Number: made-up product attempts caught / dispatched (dispatched must be 0).
+  * **Pushy nudges:** Mitigation: max 2 per order, only above the threshold, fixed polite template, never repeated after "No". Number: nudge precision and average nudges per order.
+  * **Synthetic-data bias:** Mitigation: openly labelled; stress test on irregular stores. Number: F1 regular vs irregular.
+* Plus one line on the human checkpoint: what the shopkeeper must check before Confirm and why this is where errors become expensive (wrong dispatch costs a return trip and lost trust).
+
+---
+
+## UI / UX REQUIREMENTS
+
+* Top banner on every page: "Educational prototype — synthetic data, not connected to real WhatsApp."
+* Clean, simple design. Inter for text, DM Mono for IDs and amounts. Off-white background (`#f8f7f4`), navy headers (`#0f1f3d`), WhatsApp green for chat (`#25d366` / `#dcf8c6`), amber for flags.
+* Custom CSS may style headers, cards and the chat, but must not break the width or scrolling of `st.dataframe` / `st.data_editor`.
+* Sidebar: store selector, 4 demo-case buttons, model choice, "Reset conversation" and "Clear cached results".
+* Works on a phone-width browser.
+
+---
+
+## PROJECT FILES TO DELIVER
+
+`app.py`, `extraction.py` (LLM + validation), `matching.py` (RAG + unit map), `reorder_model.py`, `guardrails.py`, `evaluate.py`, `requirements.txt` (pinned versions), and a `README_APP.md` written in plain language for non-technical teammates: how to run locally, how to add the key, how to deploy on Streamlit Community Cloud step by step, and how to change the rules files.
+
+---
+
+## ACCEPTANCE CRITERIA
+
+* `streamlit run app.py` launches without errors locally and on Streamlit Community Cloud.
+* Missing data files, rule files or Groq key -> a clear styled error naming what is missing.
+* The 4 demo cases work end to end: clean order -> correct confirmation table; unclear order -> follow-up question; nudge -> at most 2 nudges, not repeated after "No"; item not in catalog -> shown as "Not in catalog".
+* No SKU, price or total ever comes from LLM output; totals always match catalog maths.
+* Injection messages never change prices or add items.
+* Lines above 3x usual quantity are flagged and need a tick before confirming.
+* Nothing is sent without the shopkeeper's confirmation.
+* Reorder model metrics are computed on unseen weeks 21-26 and compared with both rules.
+* Evaluation reports item, quantity and unit accuracy separately, by category, and resumes from cache.
+* Editing `ordering-rules.md` (e.g. nudge threshold or quantity flag) and re-running visibly changes behaviour with no code change.
+* Reruns, button clicks and filters never re-call the LLM for a cached message.
+* Groq 429 errors are retried gracefully, not shown as crashes.
+* Every table is a real grid: no raw JSON, lists or dicts in any cell.
+* RAG is real retrieve-then-choose: the LLM only ever sees and picks from retrieved catalog candidates; any other ID is rejected and counted.
+* The nudge threshold table and the irregular-store stress test are shown on the Reorder model tab.
+* The Risks tab shows all four risks from the brief with live numbers, and "made-up products dispatched" is 0.
